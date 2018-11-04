@@ -1,6 +1,6 @@
 ﻿{
-  "DisplayFolder": "D:\\testArt\\",
-  "FavoritesFolder": "D:\\testArt\\",
+  "DisplayFolder": "\\Assets\\Display",
+  "FavoritesFolder": "\\Assets\\Favorites",
   "AutoSleep": true,
   "TurnOnMonitor": "08:00",
   "TurnOffMonitor": "23:00",

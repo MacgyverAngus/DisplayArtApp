@@ -100,10 +100,12 @@ namespace ArtDisplay
             string contents = await FileIO.ReadTextAsync(storageFile);
             _settings = JsonConvert.DeserializeObject<Settings>(contents);
         }
-
+         
         public async void SetSource()
         {
-            StorageFolder folder = await StorageFolder.GetFolderFromPathAsync(_settings.DisplayFolder);
+            StorageFolder installedLocation = Windows.ApplicationModel.Package.Current.InstalledLocation;
+
+            StorageFolder folder = await StorageFolder.GetFolderFromPathAsync(installedLocation.Path + _settings.DisplayFolder);
 
             if (folder == null) return;
 

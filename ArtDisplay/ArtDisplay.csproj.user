@@ -10,4 +10,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <LayoutDir>D:\_Projekty\Art-display\Frontend\DisplayArtApp\ArtDisplay\bin\x64\Debug\AppX</LayoutDir>
   </PropertyGroup>
+  <PropertyGroup>
+    <ProjectView>ShowAllFiles</ProjectView>
+  </PropertyGroup>
 </Project>
