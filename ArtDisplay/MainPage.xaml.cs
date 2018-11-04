@@ -24,8 +24,6 @@ using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Navigation;
 
-// The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
-
 namespace ArtDisplay
 {
     /// <summary>
@@ -100,12 +98,16 @@ namespace ArtDisplay
             string contents = await FileIO.ReadTextAsync(storageFile);
             _settings = JsonConvert.DeserializeObject<Settings>(contents);
         }
-         
+
         public async void SetSource()
         {
+            var artSource = _settings.DisplayFolder;
+            if (_settings.SlideShow)
+                artSource = _settings.FavoritesFolder;
+
             StorageFolder installedLocation = Windows.ApplicationModel.Package.Current.InstalledLocation;
 
-            StorageFolder folder = await StorageFolder.GetFolderFromPathAsync(installedLocation.Path + _settings.DisplayFolder);
+            StorageFolder folder = await StorageFolder.GetFolderFromPathAsync(installedLocation.Path + artSource);
 
             if (folder == null) return;
 
@@ -115,11 +117,47 @@ namespace ArtDisplay
 
             if (!sortedItems.Any()) return;
 
-            using (Windows.Storage.Streams.IRandomAccessStream fileStream = await sortedItems[0].OpenAsync(Windows.Storage.FileAccessMode.Read))
+            if (!_settings.SlideShow)
             {
-                // Set the image source to the selected bitmap.
-                BitmapImage bitmapImage = new BitmapImage();
+                using (Windows.Storage.Streams.IRandomAccessStream fileStream = await sortedItems[0].OpenAsync(Windows.Storage.FileAccessMode.Read))
+                {
+                    BitmapImage bitmapImage = new BitmapImage();
+                    bitmapImage.SetSource(fileStream);
+                    DisplayImage.Source = bitmapImage;
+                }
+            }
+            else
+            {
+                var artPosition = 0;
+                TimeSpan period = TimeSpan.FromMinutes(_settings.SlideShowMinutes);
 
+                SetImageSource(sortedItems, artPosition);
+                artPosition++;
+
+                ThreadPoolTimer PeriodicTimer = ThreadPoolTimer.CreatePeriodicTimer((source) =>
+                {
+                    Dispatcher.RunAsync(CoreDispatcherPriority.High,
+                        () =>
+                        {
+                            SetImageSource(sortedItems, artPosition);
+
+                            if (sortedItems.Count == (artPosition + 1))
+                                artPosition = 0;
+                            else
+                                artPosition++;
+                        });
+
+
+
+                }, period);
+            }
+        }
+
+        private async void SetImageSource(IReadOnlyList<StorageFile> sortedItems, int artPosition)
+        {
+            using (Windows.Storage.Streams.IRandomAccessStream fileStream = await sortedItems[artPosition].OpenAsync(FileAccessMode.Read))
+            {
+                BitmapImage bitmapImage = new BitmapImage();
                 bitmapImage.SetSource(fileStream);
                 DisplayImage.Source = bitmapImage;
             }
